@@ -10,8 +10,6 @@
 
 struct zwlr_layer_shell_v1 *shell;
 
-const int SLEEP_SECONDS = 3;
-
 // TODO - this is only to make wlr shell protocol link:
 const struct wl_interface xdg_popup_interface;
 
@@ -29,9 +27,8 @@ void config_surface(void *data,
   zwlr_layer_surface_v1_ack_configure(zwlr_layer_surface_v1, serial);
 }
 
-gboolean autoquit(gpointer data) {
+void autoquit(gpointer data) {
   gtk_widget_destroy(GTK_WIDGET(data));
-  return false;
 }
 
 char *path_concat(char *path1, char *path2) {
@@ -47,9 +44,19 @@ char *path_concat(char *path1, char *path2) {
 int main(int argc, char **argv) {
 	gtk_init(&argc, &argv);
 
+  int sleep_useconds = 0;
+
+  char *sleep_str = getenv("WLR_SAY_SLEEP");
+  if (sleep_str != NULL) {
+    sleep_useconds = atoi(sleep_str);
+  }
+  if (sleep_useconds == 0) {
+    sleep_useconds = 1000;
+  }
+
   GtkWidget *win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   g_signal_connect (win, "destroy", G_CALLBACK (gtk_main_quit), NULL);
-  g_timeout_add_seconds(SLEEP_SECONDS, autoquit, win);
+  g_timeout_add_once(sleep_useconds, autoquit, win);
 
   gtk_widget_set_name(win, "wlr-say");
   gtk_widget_realize(win);
