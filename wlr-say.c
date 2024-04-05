@@ -1,4 +1,6 @@
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkwayland.h>
@@ -30,6 +32,16 @@ void config_surface(void *data,
 gboolean autoquit(gpointer data) {
   gtk_widget_destroy(GTK_WIDGET(data));
   return false;
+}
+
+char *path_concat(char *path1, char *path2) {
+    int path_len = strlen(path1) + strlen(path2) + 1;
+    char *new_path = malloc(path_len + 1);
+    if (new_path == NULL) {
+      return NULL;
+    }
+    snprintf(new_path, path_len + 1, "%s/%s", path1, path2);
+    return new_path;
 }
 
 int main(int argc, char **argv) {
@@ -66,7 +78,22 @@ int main(int argc, char **argv) {
   GtkWidget *label = gtk_label_new(argv[1]);
   GtkCssProvider *css_provider = gtk_css_provider_new();
 
-  gtk_css_provider_load_from_path(css_provider, "style.css", NULL);
+  char *config_dir = getenv("XDG_CONFIG_PATH");
+  if (config_dir == NULL) {
+    char *home_dir = getenv("HOME");
+    if (home_dir == NULL) {
+      home_dir = "";
+    }
+    config_dir = path_concat(home_dir, ".config");
+    if (config_dir == NULL) {
+      return 1;
+    }
+  }
+  char *style_path = path_concat(config_dir, "wlr-say/style.css");
+  if (style_path == NULL) {
+    return 1;
+  }
+  gtk_css_provider_load_from_path(css_provider, style_path, NULL);
   gtk_style_context_add_provider(gtk_widget_get_style_context(win), GTK_STYLE_PROVIDER(css_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
   gtk_style_context_add_provider(gtk_widget_get_style_context(label), GTK_STYLE_PROVIDER(css_provider), GTK_STYLE_PROVIDER_PRIORITY_USER);
 
