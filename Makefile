@@ -1,7 +1,7 @@
 all: wlr-say
 
-CFLAGS=`pkg-config -cflags gtk+-3.0`
-LDFLAGS=`pkg-config --libs gtk+-3.0` `pkg-config --libs wayland-client`
+CFLAGS=`pkg-config -cflags gtk+-3.0 wayland-client`
+LDFLAGS=`pkg-config --libs gtk+-3.0 wayland-client`
 
 .PHONY: proto clean compile_commands
 proto: wlr-layer-shell-unstable-v1.c wlr-layer-shell-unstable-v1.h
